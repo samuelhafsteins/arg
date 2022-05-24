@@ -19,6 +19,21 @@ app = Flask(__name__)
 load_dotenv()
 
 
+def authenticated(f):
+    """
+    Only allow authenticated requests.
+    """
+
+    @wraps(f)
+    def wrapped_view(**kwargs):
+        auth = request.headers.get("X-API")
+        if auth != os.getenv("TOKEN"):
+            return "DENIED", 401
+        return f(**kwargs)
+
+    return wrapped_view
+
+
 @app.route("/api/v1/")
 def show_size():
     """
@@ -28,6 +43,7 @@ def show_size():
 
 
 @app.route("/api/v1/lookup/<domain>", methods=["POST"])
+@authenticated
 def create_domain(domain):
     """
     Takes in an domain name, validates it and then checks if the DNS
@@ -44,6 +60,7 @@ def create_domain(domain):
 
 
 @app.route("/api/v1/lookup/<domain>", methods=["GET"])
+@authenticated
 def read_domain(domain):
     """
     Checks if the domain in is in the cache and that the cache is valid,
@@ -61,6 +78,7 @@ def read_domain(domain):
 
 
 @app.route("/api/v1/lookup/<domain>", methods=["DEL"])
+@authenticated
 def delete_domain(domain):
     """
     Removes the cached results from the cache.
@@ -73,6 +91,7 @@ def delete_domain(domain):
 
 
 @app.route("/api/v1/lookup/<domain>", methods=["PUT"])
+@authenticated
 def update_domain(domain):
     """
     Updates the cache for the domain.
