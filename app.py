@@ -49,6 +49,9 @@ def create_domain(domain):
     Takes in an domain name, validates it and then checks if the DNS
     has been resolved recently.
     """
+    if not valid_domain(domain):
+        return "ERR - Invalid domain name", 400
+
     cached = store.read(domain)
     if cached:
         return cached.lookup(), 200
@@ -66,6 +69,9 @@ def read_domain(domain):
     Checks if the domain in is in the cache and that the cache is valid,
     if so, it returns the IP address for that domain.
     """
+    if not valid_domain(domain):
+        return "ERR - Invalid domain name", 400
+
     cached = store.read(domain)
     if cached:
         if request.args.get("debug") == "true":
@@ -83,6 +89,9 @@ def delete_domain(domain):
     """
     Removes the cached results from the cache.
     """
+    if not valid_domain(domain):
+        return "ERR - Invalid domain name", 400
+
     deleted = store.delete(domain)
     if deleted:
         return f"{domain} deleted from cache", 200
@@ -96,12 +105,27 @@ def update_domain(domain):
     """
     Updates the cache for the domain.
     """
+    if not valid_domain(domain):
+        return "ERR - Invalid domain name", 400
+
     cached = store.read(domain)
     if cached:
         cached.update(request.args)
         return f"{domain} updated", 200
 
     return "ERR - domain not found in cache", 400
+
+
+def valid_domain(domain) -> bool:
+    """
+    Validates that the domain name matches a basic regex.
+    """
+    pattern = r"^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$"
+    valid = re.match(pattern, domain)
+
+    if valid:
+        return True
+    return False
 
 
 if __name__ == "__main__":
