@@ -1,7 +1,7 @@
 FROM ubuntu:21.04
 
 WORKDIR /src/
-COPY ./src/* .
+COPY . .
 
 RUN apt-get update \
 	&& apt-get upgrade -y \
